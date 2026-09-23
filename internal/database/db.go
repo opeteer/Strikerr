@@ -40,3 +40,39 @@ func AutoMigrate() error {
 		&TyposquattingDomain{},
 	)
 }
+
+// Seed adds some initial testing data to the DB if it is empty.
+func Seed() error {
+	var count int64
+	if err := DB.Model(&MuleAccount{}).Count(&count).Error; err != nil {
+		return err
+	}
+
+	if count == 0 {
+		log.Println("Database is empty, seeding with test threat data...")
+		DB.Create(&MuleAccount{
+			InstitutionType: "Bank",
+			InstitutionName: "BCA",
+			AccountNumber:   "1234567890",
+			SourceURL:       "phishing-bca-login.com",
+			RiskScore:       95,
+			Status:          "VERIFIED_FRAUD",
+		})
+		DB.Create(&MuleAccount{
+			InstitutionType: "EWallet",
+			InstitutionName: "DANA",
+			AccountNumber:   "081234567890",
+			SourceURL:       "slot-gacor-maxwin.net",
+			RiskScore:       80,
+			Status:          "S/MIME_REPORTED",
+		})
+		DB.Create(&TyposquattingDomain{
+			TargetedBrand:   "Bank Mandiri",
+			DomainName:      "bankmandirri-promo.com",
+			MutationType:    "Typosquatting",
+			SimilarityScore: 0.95,
+			ThreatStatus:    "SUSPICIOUS_REGISTERED",
+		})
+	}
+	return nil
+}
