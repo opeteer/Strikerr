@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strikerr | Tactical Red Threat Ops</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
@@ -70,7 +70,7 @@
                     </span>
                 </div>
                 <div class="text-white font-bold tracking-wide">SCANNING INTERNET</div>
-                <div class="text-[10px] text-zinc-300/60 mt-1 font-mono">Live Poll: Every 2.5s</div>
+                <div class="text-[10px] text-zinc-300/60 mt-1 font-mono">Live Poll: Every 5s</div>
             </div>
         </div>
     </aside>
@@ -193,7 +193,7 @@
                         <span class="text-xs font-mono text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">LIVE STREAM</span>
                     </div>
                     <div class="h-64 relative w-full">
-                        <canvas id="trendChart"></canvas>
+                        <div id="trendChart" class="w-full h-full"></div>
                     </div>
                 </div>
 
@@ -204,9 +204,9 @@
                             <i class="ph ph-pie-chart text-blue-500"></i> Mule Account Types
                         </h3>
                     </div>
-                    <!-- Fixed wrapping div to allow canvas to size properly -->
+                    <!-- Fixed wrapping div to allow chart to size properly -->
                     <div class="h-64 relative w-full">
-                        <canvas id="pieChart"></canvas>
+                        <div id="pieChart" class="w-full h-full"></div>
                     </div>
                 </div>
             </div>
@@ -430,13 +430,29 @@
                 init() {
                     const now = new Date();
                     for (let i = 7; i >= 0; i--) {
-                        let t = new Date(now.getTime() - i * 2500);
+                        let t = new Date(now.getTime() - i * 5000);
                         this.historyLabels.push(t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                         this.historyData.push(Math.floor(Math.random() * 2) + 1); // Seed base scanning activity
                     }
                     this.initCharts();
                     this.fetchStats();
-                    setInterval(() => { this.fetchStats(); }, 2500); // Poll live every 2.5 seconds!
+                    this.setupSSE();
+                },
+                setupSSE() {
+                    const evtSource = new EventSource('/api/v1/stats/stream');
+                    evtSource.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.stats = data;
+                            this.recentMules = data.recent_mules || [];
+                            this.updateCharts(data);
+                        } catch (e) {
+                            console.error("Error parsing SSE data", e);
+                        }
+                    };
+                    evtSource.onerror = (err) => {
+                        console.error("SSE Error:", err);
+                    };
                 },
                 fetchStats() {
                     fetch('/api/v1/stats?t=' + Date.now())
@@ -449,50 +465,45 @@
                         .catch(err => console.error("Error fetching stats:", err));
                 },
                 initCharts() {
-                    const ctxTrend = document.getElementById('trendChart').getContext('2d');
-                    lineChart = new Chart(ctxTrend, {
-                        type: 'line',
-                        data: {
-                            labels: this.historyLabels,
-                            datasets: [{
-                                label: 'Scan Velocity (Events/2.5s)',
-                                data: this.historyData,
-                                borderColor: '#3b82f6',
-                                borderWidth: 3,
-                                tension: 0.4,
-                                fill: true,
-                                backgroundColor: 'rgba(59, 130, 246, 0.15)'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { labels: { color: '#3b82f6', font: { family: 'JetBrains Mono', size: 11 } } } },
-                            scales: {
-                                x: { ticks: { color: '#737373' }, grid: { color: 'rgba(63, 63, 70, 0.5)' } },
-                                y: { ticks: { color: '#737373', stepSize: 1 }, grid: { color: 'rgba(63, 63, 70, 0.5)' }, beginAtZero: true, suggestedMax: 5 }
-                            },
-                            animation: { duration: 500 }
-                        }
+                    const trendDom = document.getElementById('trendChart');
+                    lineChart = echarts.init(trendDom);
+                    lineChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', boundaryGap: false, data: this.historyLabels, axisLabel: { color: '#737373' }, splitLine: { show: true, lineStyle: { color: 'rgba(63, 63, 70, 0.5)' } } },
+                        yAxis: { type: 'value', axisLabel: { color: '#737373' }, splitLine: { show: true, lineStyle: { color: 'rgba(63, 63, 70, 0.5)' } }, min: 0, max: 'dataMax' },
+                        series: [{
+                            name: 'Scan Velocity',
+                            type: 'line',
+                            data: this.historyData,
+                            smooth: true,
+                            itemStyle: { color: '#3b82f6' },
+                            areaStyle: { color: 'rgba(59, 130, 246, 0.15)' },
+                            lineStyle: { width: 3 }
+                        }]
                     });
 
-                    const ctxPie = document.getElementById('pieChart').getContext('2d');
-                    pieChart = new Chart(ctxPie, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Bank Account', 'E-Wallet'],
-                            datasets: [{
-                                data: [1, 1], // Default placeholder to prevent 0x0 render collapse
-                                backgroundColor: ['#3b82f6', '#38bdf8'],
-                                borderColor: '#171717',
-                                borderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { position: 'bottom', labels: { color: '#d4d4d4', font: { family: 'Inter', size: 11 } } } }
-                        }
+                    const pieDom = document.getElementById('pieChart');
+                    pieChart = echarts.init(pieDom);
+                    pieChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '0%', textStyle: { color: '#d4d4d4', fontFamily: 'Inter', fontSize: 11 } },
+                        series: [{
+                            name: 'Mule Account Types',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            itemStyle: { borderColor: '#171717', borderWidth: 2 },
+                            label: { show: false },
+                            data: [
+                                { value: 1, name: 'Bank Account', itemStyle: { color: '#3b82f6' } },
+                                { value: 1, name: 'E-Wallet', itemStyle: { color: '#38bdf8' } }
+                            ]
+                        }]
+                    });
+
+                    window.addEventListener('resize', function() {
+                        lineChart.resize();
+                        pieChart.resize();
                     });
                 },
                 updateCharts(data) {
@@ -522,9 +533,10 @@
                         this.historyLabels.push(timeStr);
                         this.historyData.push(chartValue);
 
-                        lineChart.data.labels = [...this.historyLabels];
-                        lineChart.data.datasets[0].data = [...this.historyData];
-                        lineChart.update('none'); // Update without full reload animation for smooth scrolling
+                        lineChart.setOption({
+                            xAxis: { data: this.historyLabels },
+                            series: [{ data: this.historyData }]
+                        });
 
                         const ewallets = data.ewallet_count || 0;
                         const banks = data.bank_count || 0;
@@ -539,8 +551,14 @@
                         
                         // If totally empty, keep 1,1 placeholder
                         if (finalBanks > 0 || finalEwallets > 0) {
-                            pieChart.data.datasets[0].data = [finalBanks, finalEwallets];
-                            pieChart.update();
+                            pieChart.setOption({
+                                series: [{
+                                    data: [
+                                        { value: finalBanks, name: 'Bank Account', itemStyle: { color: '#3b82f6' } },
+                                        { value: finalEwallets, name: 'E-Wallet', itemStyle: { color: '#38bdf8' } }
+                                    ]
+                                }]
+                            });
                         }
                     }
                 }

@@ -37,6 +37,7 @@ func setupRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	{
 		api.GET("/stats", handlers.APIGetStats)
+		api.GET("/stats/stream", handlers.APIGetStatsSSE)
 		api.GET("/metrics/details", handlers.APIGetMetricDetails)
 		api.GET("/feeds/mule-accounts", handlers.APIMuleAccountsFeed)
 		api.GET("/feeds/typosquatting", handlers.APITyposquattingFeed)
