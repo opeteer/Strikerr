@@ -71,10 +71,10 @@ func (h *ActiveHunter) StartHuntingLoop(ctx context.Context) {
 }
 
 var ctiThreatFeeds = []struct {
-	url    string
-	brand  string
-	dom    string
-	isGov  bool
+	url   string
+	brand string
+	dom   string
+	isGov bool
 }{
 	{
 		url:   "https://klikbca.co.id-secure-login.info",
@@ -111,11 +111,11 @@ var ctiThreatFeeds = []struct {
 func (h *ActiveHunter) generateDynamicCandidate() (string, string, string, bool) {
 	// Pick a random authentic CTI profile
 	feed := ctiThreatFeeds[rand.Intn(len(ctiThreatFeeds))]
-	
+
 	// Add a little randomization to the URL to make it unique per run
 	randSuffix := rand.Intn(900) + 100
 	url := fmt.Sprintf("%s-%d", feed.url, randSuffix)
-	
+
 	return url, feed.brand, feed.dom, feed.isGov
 }
 
@@ -192,17 +192,17 @@ func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) 
 		res := database.DB.Where("domain_name = ?", url).First(&typo)
 		if res.RowsAffected == 0 {
 			now := time.Now()
-			
+
 			// Simulate report generation
 			report := reporting.PandiAbuseReport{
-				DomainName:       url,
-				RegistrantEmail:  "unknown@target.com",
-				AbuseType:        brand,
-				EvidenceLinks:    []string{"https://strikerr.local/evidence/" + evidence.ID.String()},
-				ThreatScore:      score,
+				DomainName:      url,
+				RegistrantEmail: "unknown@target.com",
+				AbuseType:       brand,
+				EvidenceLinks:   []string{"https://strikerr.local/evidence/" + evidence.ID.String()},
+				ThreatScore:     score,
 			}
 			_ = reporting.GeneratePandiReport(report) // generates the S/MIME string
-			
+
 			recipient := "PANDI Abuse (abuse@pandi.id)"
 			if isGov {
 				recipient = "BSSN CSIRT (csirt@bssn.go.id)"
@@ -211,15 +211,15 @@ func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) 
 			smiHash := fmt.Sprintf("sha256:SMI-%d", rand.Int63())
 
 			database.DB.Create(&database.TyposquattingDomain{
-				TargetedBrand:   brand,
-				DomainName:      url,
-				MutationType:    "SEO_Poisoning/Phishing",
-				SimilarityScore: float64(score) / 100.0,
-				ThreatStatus:    "OFFICIALLY_REPORTED",
-				ReportedAt:      &now,
-				ReportRecipient: recipient,
+				TargetedBrand:    brand,
+				DomainName:       url,
+				MutationType:     "SEO_Poisoning/Phishing",
+				SimilarityScore:  float64(score) / 100.0,
+				ThreatStatus:     "OFFICIALLY_REPORTED",
+				ReportedAt:       &now,
+				ReportRecipient:  recipient,
 				SmiSignatureHash: smiHash,
-				EvidenceVaultID: &evidence.ID,
+				EvidenceVaultID:  &evidence.ID,
 			})
 			log.Printf("[REPORTING] Assembled threat dossier for %s. S/MIME signed report dispatched to %s.", url, recipient)
 		}

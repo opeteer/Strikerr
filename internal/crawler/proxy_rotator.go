@@ -26,11 +26,11 @@ func (p *ProxyPool) GetNextProxy() string {
 	if len(p.Proxies) == 0 {
 		return ""
 	}
-	
+
 	// Simulate proxy rotation logic
 	p.Active = (p.Active + 1) % len(p.Proxies)
 	proxy := p.Proxies[p.Active]
-	
+
 	log.Printf("[OPSEC] Proxy Rotator: Selected egress node %s", maskProxyAuth(proxy))
 	return proxy
 }

@@ -47,12 +47,12 @@ func APIGetMetricDetails(c *gin.Context) {
 	case "officially_reported":
 		var domains []database.TyposquattingDomain
 		database.DB.Where("threat_status = ?", "OFFICIALLY_REPORTED").Order("reported_at desc").Limit(20).Find(&domains)
-		
+
 		type DisplayItem struct {
 			DomainName      string `json:"DomainName"`
 			InstitutionName string `json:"InstitutionName"`
 		}
-		
+
 		var items []DisplayItem
 		for _, d := range domains {
 			items = append(items, DisplayItem{

@@ -39,7 +39,7 @@ func (s *DorkScanner) StartScanning(ctx context.Context) {
 		case <-ticker.C:
 			dork := s.Dorks[rand.Intn(len(s.Dorks))]
 			log.Printf("[DORK_SCANNER] Executing query: %s", dork)
-			
+
 			// Simulate search API returning a compromised URL
 			// In production, this would call Serper/Google Custom Search API
 			fakeResult := fmt.Sprintf("https://dinas.pemprov.go.id/wp-content/uploads/2023/slot-%d", rand.Intn(1000))

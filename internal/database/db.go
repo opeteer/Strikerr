@@ -13,7 +13,7 @@ var DB *gorm.DB
 
 func Connect(dsn string) error {
 	var err error
-	
+
 	// Open database connection
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

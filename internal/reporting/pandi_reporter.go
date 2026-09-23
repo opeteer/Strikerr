@@ -6,11 +6,11 @@ import (
 )
 
 type PandiAbuseReport struct {
-	DomainName       string
-	RegistrantEmail  string
-	AbuseType        string
-	EvidenceLinks    []string
-	ThreatScore      int
+	DomainName      string
+	RegistrantEmail string
+	AbuseType       string
+	EvidenceLinks   []string
+	ThreatScore     int
 }
 
 func GeneratePandiReport(report PandiAbuseReport) string {
@@ -44,7 +44,7 @@ Strikerr Automated SOC
 		links += "- " + l + "\n"
 	}
 
-	return fmt.Sprintf(template, 
+	return fmt.Sprintf(template,
 		report.AbuseType, report.DomainName,
 		time.Now().Format(time.RFC1123Z),
 		report.DomainName, report.RegistrantEmail, report.AbuseType, report.ThreatScore,

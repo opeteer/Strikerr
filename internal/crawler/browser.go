@@ -72,7 +72,7 @@ func (sb *StealthBrowser) Crawl(ctx context.Context, targetURL string) (*Crawler
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Enforce 30s timeout on navigation
 	page.SetDefaultNavigationTimeout(30000)
 
@@ -82,7 +82,7 @@ func (sb *StealthBrowser) Crawl(ctx context.Context, targetURL string) (*Crawler
 	if err != nil {
 		return nil, fmt.Errorf("failed to goto %s: %w", targetURL, err)
 	}
-	
+
 	// Optional: add random sleep for anti-bot evasion
 	time.Sleep(2 * time.Second)
 

@@ -55,7 +55,7 @@ func main() {
 	if cfg.ServerPort != 0 {
 		port = fmt.Sprintf("%d", cfg.ServerPort)
 	}
-	
+
 	srv := web.NewServer(port)
 	go func() {
 		log.Printf("Strikerr Web Server starting on port %s...", port)
@@ -94,7 +94,7 @@ func main() {
 		if cfg.RedisURL != "" {
 			log.Println("Initializing Redis Task Queue...")
 			redisOpt := asynq.RedisClientOpt{Addr: cfg.RedisURL}
-			
+
 			processor, err := worker.NewTaskProcessor()
 			if err != nil {
 				log.Printf("Warning: Failed to initialize task processor: %v", err)
@@ -128,7 +128,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	
+
 	log.Println("Shutting down Strikerr...")
 	cancel()
 	if workerServer != nil {

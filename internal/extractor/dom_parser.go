@@ -15,7 +15,7 @@ type ExtractedInfo struct {
 
 func ParseDOM(domContent string) ExtractedInfo {
 	info := ExtractedInfo{}
-	
+
 	info.BankAccounts = ExtractBanks(domContent)
 	info.EWallets = ExtractEWallets(domContent)
 	info.QRISPayloads = ExtractQRIS(domContent)

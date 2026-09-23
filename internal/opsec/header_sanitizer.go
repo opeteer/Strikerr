@@ -29,7 +29,7 @@ func SanitizeMailHeaders(rawMail string) string {
 			safeLines = append(safeLines, line)
 		}
 	}
-	
+
 	log.Println("[OPSEC] Outbound mail headers sanitized. IP leaks stripped.")
 	return strings.Join(safeLines, "\n")
 }

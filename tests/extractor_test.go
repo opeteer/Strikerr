@@ -1,13 +1,13 @@
 package tests
 
 import (
-	"testing"
 	"github.com/opeteer/strikerr/internal/extractor"
+	"testing"
 )
 
 func TestFinancialExtractor(t *testing.T) {
 	html := "Silakan transfer ke rekening BCA 8830192841 atas nama Budi, atau DANA 081234567890."
-	
+
 	banks := extractor.ExtractBanks(html)
 	if len(banks) != 1 || banks[0] != "8830192841" {
 		t.Errorf("Expected BCA 8830192841, got %v", banks)

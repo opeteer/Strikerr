@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"sync"
@@ -66,15 +65,15 @@ func fetchStatsData() gin.H {
 	}
 
 	resPayload := gin.H{
-		"active_hunts":       totalDomains,
-		"frozen_mules":       totalMules,
+		"active_hunts":        totalDomains,
+		"frozen_mules":        totalMules,
 		"officially_reported": reportedCount,
-		"bank_count":         bankCount,
-		"ewallet_count":      ewalletCount,
-		"verified_takedowns": totalEvidence,
-		"threat_level":       threatLevel,
-		"recent_mules":       recentMules,
-		"institution_stats":  instCounts,
+		"bank_count":          bankCount,
+		"ewallet_count":       ewalletCount,
+		"verified_takedowns":  totalEvidence,
+		"threat_level":        threatLevel,
+		"recent_mules":        recentMules,
+		"institution_stats":   instCounts,
 	}
 
 	cachedStats = resPayload
@@ -95,9 +94,9 @@ func APIGetStatsSSE(c *gin.Context) {
 
 	c.Stream(func(w io.Writer) bool {
 		stats := fetchStatsData()
-		data, err := json.Marshal(stats)
-		if err == nil {
-			c.SSEvent("message", string(data))
+		c.SSEvent("message", stats)
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
 		time.Sleep(2 * time.Second)
 		return true
@@ -147,7 +146,7 @@ func APIPurgeDatabase(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database not initialized"})
 		return
 	}
-	
+
 	if err := database.TruncateDatabase(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -156,11 +155,11 @@ func APIPurgeDatabase(c *gin.Context) {
 	statsCacheLock.Lock()
 	cachedStats = nil
 	statsCacheLock.Unlock()
-	
+
 	// Also clear in-memory logger
 	if logger.GlobalBuffer != nil {
 		logger.GlobalBuffer.Reset()
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Database and logs purged successfully"})
 }

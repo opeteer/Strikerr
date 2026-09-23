@@ -27,7 +27,7 @@ func APIScanTarget(c *gin.Context) {
 	}
 
 	// This is a direct API call endpoint for manual scanning!
-	// It communicates with the UI quickly and pretends to have scanned, 
+	// It communicates with the UI quickly and pretends to have scanned,
 	// but actually we just queue it or simulate a fast extraction for the UI.
 	// Since we don't have the ActiveHunter instance here, we will just simulate a high-quality DB insertion!
 
@@ -64,7 +64,7 @@ func APIScanTarget(c *gin.Context) {
 		RiskScore:       score,
 		Status:          "NEW_DETECTED",
 	})
-	
+
 	database.DB.Create(&database.MuleAccount{
 		InstitutionType: "EWallet",
 		InstitutionName: "Extracted DANA",
@@ -75,7 +75,7 @@ func APIScanTarget(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
+		"status":  "success",
 		"message": fmt.Sprintf("Target %s analyzed successfully! (Threat Score: %d)", url, score),
 	})
 }
@@ -86,13 +86,13 @@ func APIDownloadDossier(c *gin.Context) {
 	if id == "" {
 		id = "sample"
 	}
-	
+
 	// Set headers for file download
 	c.Header("Content-Disposition", "attachment; filename=dossier_"+id+".pdf")
 	c.Header("Content-Type", "application/pdf")
-	
+
 	// Create a minimal fake PDF content just so the browser downloads something
 	pdfContent := "%PDF-1.4\n1 0 obj\n<< /Title (Evidence Dossier) >>\nendobj\n"
-	
+
 	c.String(http.StatusOK, pdfContent)
 }

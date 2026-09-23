@@ -46,7 +46,7 @@ func (h *HibernationEngine) initiateCooldown() {
 	log.Println("[OPSEC] Cooldown period expired. Transitioning to RECOVERY...")
 	h.currentState.Store(StateRecovery)
 	atomic.StoreUint32(&h.probeCounter, 0)
-	
+
 	// Simulate verifying telemetry before full normal mode
 	time.Sleep(2 * time.Second)
 	log.Println("[OPSEC] Telemetry clean. Resuming NORMAL operations.")

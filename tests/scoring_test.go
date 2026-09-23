@@ -1,9 +1,9 @@
 package tests
 
 import (
-	"testing"
 	"github.com/opeteer/strikerr/internal/extractor"
 	"github.com/opeteer/strikerr/internal/scoring"
+	"testing"
 )
 
 func TestCalculateThreatScore(t *testing.T) {

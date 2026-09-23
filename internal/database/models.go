@@ -27,8 +27,8 @@ type MuleAccount struct {
 	SourceURL         string    `gorm:"not null"`
 	EvidenceVaultID   *uuid.UUID
 	EvidenceVault     EvidenceVault
-	RiskScore         int       `gorm:"check:risk_score >= 0 AND risk_score <= 100"`
-	Status            string    `gorm:"size:32;default:'NEW_DETECTED'"`
+	RiskScore         int    `gorm:"check:risk_score >= 0 AND risk_score <= 100"`
+	Status            string `gorm:"size:32;default:'NEW_DETECTED'"`
 }
 
 type TyposquattingDomain struct {
@@ -39,12 +39,12 @@ type TyposquattingDomain struct {
 	LevenshteinDistance int       `gorm:"not null"`
 	SimilarityScore     float64   `gorm:"not null"`
 	RegisteredAt        *time.Time
-	Registrar           string    `gorm:"size:128"`
-	ResolvedIP          string    `gorm:"size:45"`
+	Registrar           string `gorm:"size:128"`
+	ResolvedIP          string `gorm:"size:45"`
 	EvidenceVaultID     *uuid.UUID
 	EvidenceVault       EvidenceVault
-	ThreatStatus        string    `gorm:"size:64;default:'SUSPICIOUS_REGISTERED';index"`
+	ThreatStatus        string `gorm:"size:64;default:'SUSPICIOUS_REGISTERED';index"`
 	ReportedAt          *time.Time
-	ReportRecipient     string    `gorm:"size:128"`
-	SmiSignatureHash    string    `gorm:"size:255"`
+	ReportRecipient     string `gorm:"size:128"`
+	SmiSignatureHash    string `gorm:"size:255"`
 }

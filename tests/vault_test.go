@@ -1,14 +1,14 @@
 package tests
 
 import (
-	"testing"
 	"github.com/opeteer/strikerr/internal/vault"
+	"testing"
 )
 
 func TestHashContent(t *testing.T) {
 	content := []byte("<html>malicious content</html>")
 	hash := vault.HashContent(content)
-	
+
 	if len(hash) != 64 {
 		t.Errorf("Expected SHA-256 hash length 64, got %d", len(hash))
 	}

@@ -7,25 +7,25 @@ import (
 
 var (
 	// E-Wallet Patterns (Indonesian numbers + patterns)
-	EWalletDanaRegex   = regexp.MustCompile(`(?i)(?:dana|d4na)[\s\:\-]+(08[0-9]{8,11})`)
-	EWalletOvoRegex    = regexp.MustCompile(`(?i)(?:ovo|ov0)[\s\:\-]+(08[0-9]{8,11})`)
-	EWalletGopayRegex  = regexp.MustCompile(`(?i)(?:gopay|go-pay)[\s\:\-]+(08[0-9]{8,11})`)
-	EWalletShopeeRegex = regexp.MustCompile(`(?i)(?:shopeepay|spay)[\s\:\-]+(08[0-9]{8,11})`)
-	EWalletLinkAjaRegex= regexp.MustCompile(`(?i)(?:linkaja)[\s\:\-]+(08[0-9]{8,11})`)
+	EWalletDanaRegex    = regexp.MustCompile(`(?i)(?:dana|d4na)[\s\:\-]+(08[0-9]{8,11})`)
+	EWalletOvoRegex     = regexp.MustCompile(`(?i)(?:ovo|ov0)[\s\:\-]+(08[0-9]{8,11})`)
+	EWalletGopayRegex   = regexp.MustCompile(`(?i)(?:gopay|go-pay)[\s\:\-]+(08[0-9]{8,11})`)
+	EWalletShopeeRegex  = regexp.MustCompile(`(?i)(?:shopeepay|spay)[\s\:\-]+(08[0-9]{8,11})`)
+	EWalletLinkAjaRegex = regexp.MustCompile(`(?i)(?:linkaja)[\s\:\-]+(08[0-9]{8,11})`)
 
 	// Bank Account Patterns (length & prefix based)
-	BankBcaRegex       = regexp.MustCompile(`(?i)(?:bca)[\s\:\-]+([0-9]{10})`)
-	BankMandiriRegex   = regexp.MustCompile(`(?i)(?:mandiri)[\s\:\-]+([0-9]{13})`)
-	BankBriRegex       = regexp.MustCompile(`(?i)(?:bri)[\s\:\-]+([0-9]{15})`)
-	BankBniRegex       = regexp.MustCompile(`(?i)(?:bni)[\s\:\-]+([0-9]{10})`)
-	BankSeabankRegex   = regexp.MustCompile(`(?i)(?:seabank|sea bank)[\s\:\-]+([0-9]{12})`)
-	BankJagoRegex      = regexp.MustCompile(`(?i)(?:bank jago|jago)[\s\:\-]+([0-9]{12})`)
+	BankBcaRegex     = regexp.MustCompile(`(?i)(?:bca)[\s\:\-]+([0-9]{10})`)
+	BankMandiriRegex = regexp.MustCompile(`(?i)(?:mandiri)[\s\:\-]+([0-9]{13})`)
+	BankBriRegex     = regexp.MustCompile(`(?i)(?:bri)[\s\:\-]+([0-9]{15})`)
+	BankBniRegex     = regexp.MustCompile(`(?i)(?:bni)[\s\:\-]+([0-9]{10})`)
+	BankSeabankRegex = regexp.MustCompile(`(?i)(?:seabank|sea bank)[\s\:\-]+([0-9]{12})`)
+	BankJagoRegex    = regexp.MustCompile(`(?i)(?:bank jago|jago)[\s\:\-]+([0-9]{12})`)
 
 	// QRIS Payload Regex (EMVCo standard)
-	QrisPayloadRegex   = regexp.MustCompile(`(?i)(000201[0-9A-Z]{30,})`)
-	
+	QrisPayloadRegex = regexp.MustCompile(`(?i)(000201[0-9A-Z]{30,})`)
+
 	// Crypto TRC-20 Address (USDT)
-	CryptoTrc20Regex   = regexp.MustCompile(`(?i)(?:usdt|trc20)[\s\:\-]+(T[A-Za-z1-9]{33})`)
+	CryptoTrc20Regex = regexp.MustCompile(`(?i)(?:usdt|trc20)[\s\:\-]+(T[A-Za-z1-9]{33})`)
 )
 
 // ExtractEWallets finds and deduplicates e-wallet numbers
