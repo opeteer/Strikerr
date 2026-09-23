@@ -16,6 +16,7 @@ import (
 	"github.com/opeteer/strikerr/internal/database"
 	"github.com/opeteer/strikerr/internal/ingestion"
 	"github.com/opeteer/strikerr/internal/logger"
+	"github.com/opeteer/strikerr/internal/opsec"
 	"github.com/opeteer/strikerr/internal/web"
 	"github.com/opeteer/strikerr/internal/worker"
 )
@@ -42,6 +43,9 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	log.Println("Starting Strikerr - Automated Threat Hunting & Reporting Platform...")
+
+	// Initialize Whitelist Bloom Filter asynchronously
+	opsec.InitWhitelist()
 
 	// 2. Load configuration
 	cfg, err := config.LoadConfig()

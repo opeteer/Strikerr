@@ -138,7 +138,7 @@ func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) 
 	}
 
 	info := extractor.ParseDOM(activeDOM)
-	score := scoring.CalculateThreatScore(info, isGov, false)
+	score := scoring.CalculateThreatScore(info, url, isGov, false)
 
 	log.Printf("[EXTRACTOR] Target %s analyzed. Threat Score: %d/100 (Extracted Mules: %d, EWallets: %d, QRIS: %d)",
 		url, score, len(info.BankAccounts), len(info.EWallets), len(info.QRISPayloads))

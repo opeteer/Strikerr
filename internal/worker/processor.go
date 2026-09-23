@@ -45,7 +45,7 @@ func (p *TaskProcessor) ProcessCrawlTask(ctx context.Context, t *asynq.Task) err
 	info := extractor.ParseDOM(res.DOMContent)
 
 	// 3. Score Threat
-	score := scoring.CalculateThreatScore(info, false, false)
+	score := scoring.CalculateThreatScore(info, payload.URL, false, false)
 
 	// 4. Save to Database if DB is connected and Threat found
 	if database.DB != nil && score > 0 {
