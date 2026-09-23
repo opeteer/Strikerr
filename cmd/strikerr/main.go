@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/hibiken/asynq"
+	"github.com/mxschmitt/playwright-go"
 	"github.com/opeteer/strikerr/internal/config"
 	"github.com/opeteer/strikerr/internal/database"
 	"github.com/opeteer/strikerr/internal/ingestion"
@@ -19,6 +21,19 @@ import (
 )
 
 func main() {
+	installPlaywright := flag.Bool("install-playwright-only", false, "Install Playwright browsers and exit")
+	flag.Parse()
+
+	if *installPlaywright {
+		log.Println("Installing Playwright browsers...")
+		err := playwright.Install()
+		if err != nil {
+			log.Fatalf("Failed to install Playwright: %v", err)
+		}
+		log.Println("Playwright installed successfully.")
+		os.Exit(0)
+	}
+
 	// 1. Initialize In-Memory Logger for Web UI
 	memLog := logger.InitLogger()
 	log.SetOutput(io.MultiWriter(os.Stdout, memLog))
@@ -64,7 +79,7 @@ func main() {
 
 	var workerServer *asynq.Server
 
-	// 5. Start Heavy Initializers in Goroutine (Playwright download blocks)
+	// 5. Start Heavy Initializers in Goroutine
 	go func() {
 		log.Println("Initializing Autonomous Threat Hunter Scanner Loop...")
 		hunter, err := ingestion.NewActiveHunter()
