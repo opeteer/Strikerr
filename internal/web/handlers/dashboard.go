@@ -2,37 +2,51 @@ package handlers
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
 func RenderDashboard(c *gin.Context) {
-	// Mock returning HTML. In reality, c.HTML(...) with HTMX templates
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Welcome to Strikerr SOC Command Center",
-		"stats": gin.H{
-			"active_hunts": 42,
-			"frozen_mules": 128,
-			"threat_level": "ELEVATED",
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"Message": "Welcome to Strikerr SOC Command Center",
+		"Stats": gin.H{
+			"ActiveHunts": 42,
+			"FrozenMules": 128,
+			"ThreatLevel": "ELEVATED",
 		},
 	})
 }
 
 func RenderEvidenceVault(c *gin.Context) {
 	caseID := c.Param("case_id")
-	c.JSON(http.StatusOK, gin.H{
-		"case_id": caseID,
-		"status":  "Sealed & Signed",
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"Message": "Evidence Vault Inspector",
+		"Stats": gin.H{
+			"ActiveHunts": 1,
+			"FrozenMules": 128,
+			"ThreatLevel": "CASE INPECTOR: " + caseID,
+		},
 	})
 }
 
 func RenderMuleAccounts(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Mule accounts matrix view",
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"Message": "Mule Accounts Registry View",
+		"Stats": gin.H{
+			"ActiveHunts": 42,
+			"FrozenMules": 128,
+			"ThreatLevel": "ACTIVE",
+		},
 	})
 }
 
 func RenderAnalytics(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Graphical telemetry & PDF export view",
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"Message": "Graphical Telemetry & Analytics",
+		"Stats": gin.H{
+			"ActiveHunts": 42,
+			"FrozenMules": 128,
+			"ThreatLevel": "ANALYTICS MODE",
+		},
 	})
 }

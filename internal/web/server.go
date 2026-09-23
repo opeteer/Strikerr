@@ -13,14 +13,10 @@ type Server struct {
 }
 
 func NewServer(port string) *Server {
-	// Set Gin to release mode in production
-	// gin.SetMode(gin.ReleaseMode)
-	
 	r := gin.Default()
 
-	// 1. Setup Static assets & Templates (Mock layout for now)
-	// r.Static("/static", "./internal/web/static")
-	// r.LoadHTMLGlob("internal/web/templates/*")
+	// 1. Load HTML templates from internal/web/templates/
+	r.LoadHTMLGlob("internal/web/templates/*")
 
 	// 2. Setup Routes
 	setupRoutes(r)
@@ -42,7 +38,6 @@ func setupRoutes(r *gin.Engine) {
 	}
 
 	// --- B2B Threat Intel API ---
-	// Protected by API Keys in a real scenario
 	api := r.Group("/api/v1")
 	{
 		api.GET("/feeds/mule-accounts", handlers.APIMuleAccountsFeed)

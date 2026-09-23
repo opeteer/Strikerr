@@ -1,4 +1,4 @@
-# --- Stage 1: Build Go Binary (Use latest Go alpine image for toolchain compatibility) ---
+# --- Stage 1: Build Go Binary (Use latest Go alpine image) ---
 FROM golang:alpine AS builder
 
 WORKDIR /app
@@ -38,9 +38,10 @@ RUN apt-get update && apt-get install -y \
     chromium-browser \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy built binary from stage 1
+# Copy built binary, config, and web templates from stage 1
 COPY --from=builder /app/strikerr /app/strikerr
 COPY --from=builder /app/config /app/config
+COPY --from=builder /app/internal/web/templates /app/internal/web/templates
 
 # Expose Web Dashboard & API Port
 EXPOSE 8051
