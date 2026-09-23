@@ -92,37 +92,40 @@ Strikerr/
 
 ---
 
-## 🚦 Quickstart & Deployment
+## 🚦 Quickstart & Instant Deployment (Docker Compose)
 
-### Prerequisites
-- **Go** 1.22+
-- **PostgreSQL** 14+
-- **Redis** 7+
-- **Node.js / Chromium** (for Playwright drivers)
+Strikerr didesain untuk dapat dijalankan secara instan menggunakan **Docker Compose**. Seluruh kontainer (Strikerr Go App, PostgreSQL Database, dan Redis Queue) akan terkonfigurasi dan berjalan secara otomatis.
 
-### 1. Clone & Configure
+### 1. Clone Repositori
 ```bash
 git clone https://github.com/opeteer/Strikerr.git
 cd Strikerr
-cp .env.example .env
 ```
 
-### 2. Run Locally
+### 2. Jalankan dengan Docker Compose
 ```bash
-# Install Go dependencies
-go mod download
-
-# Install Playwright drivers
-go run github.com/mxschmitt/playwright-go/cmd/playwright install --with-deps
-
-# Start Strikerr
-go run cmd/strikerr/main.go
+docker compose up -d --build
 ```
 
-### 3. Deploy with Docker Compose
-```bash
-docker-compose up -d
-```
+Setelah kontainer berjalan, buka browser dan akses Dashboard SOC Strikerr di:
+👉 **`http://localhost:8080`**
+
+---
+
+### 🛠️ Opsional: Instalasi Manual (Lokal Tanpa Docker)
+
+Jika Anda ingin menjalankan atau menguji aplikasi secara langsung di lingkungan lokal Go:
+
+1. **Pastikan Dependensi Terpasang:** Go 1.22+, PostgreSQL 14+, Redis 7+.
+2. **Setup Konfigurasi Environment:**
+   ```bash
+   cp .env.example .env
+   ```
+3. **Jalankan Aplikasi:**
+   ```bash
+   go mod download
+   go run cmd/strikerr/main.go
+   ```
 
 ---
 
