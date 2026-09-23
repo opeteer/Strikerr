@@ -21,6 +21,11 @@ func LoadConfig() (*Config, error) {
 		log.Println("No .env file found, relying on system environment variables.")
 	}
 
+	viper.BindEnv("DATABASE_URL")
+	viper.BindEnv("REDIS_URL")
+	viper.BindEnv("PROXY_URL")
+	viper.BindEnv("SERVER_PORT")
+
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, err

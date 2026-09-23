@@ -25,12 +25,14 @@ func main() {
 	flag.Parse()
 
 	if *installPlaywright {
-		log.Println("Installing Playwright browsers...")
-		err := playwright.Install()
+		log.Println("Installing Playwright Chromium browser...")
+		err := playwright.Install(&playwright.RunOptions{
+			Browsers: []string{"chromium"},
+		})
 		if err != nil {
 			log.Fatalf("Failed to install Playwright: %v", err)
 		}
-		log.Println("Playwright installed successfully.")
+		log.Println("Playwright Chromium installed successfully.")
 		os.Exit(0)
 	}
 

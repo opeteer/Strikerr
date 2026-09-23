@@ -22,7 +22,9 @@ type StealthBrowser struct {
 }
 
 func NewStealthBrowser() (*StealthBrowser, error) {
-	err := playwright.Install()
+	err := playwright.Install(&playwright.RunOptions{
+		Browsers: []string{"chromium"},
+	})
 	if err != nil {
 		log.Printf("could not install playwright drivers: %v", err)
 	}
