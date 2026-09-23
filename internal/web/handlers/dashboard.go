@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/opeteer/strikerr/internal/database"
+	"github.com/opeteer/strikerr/internal/logger"
 )
 
 func RenderDashboard(c *gin.Context) {
@@ -19,8 +20,9 @@ func RenderDashboard(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"ActiveMenu": "dashboard",
 		"Stats": gin.H{
-			"ActiveHunts": totalDomains, // Using domains as a proxy for active hunts
+			"ActiveHunts": totalDomains,
 			"FrozenMules": totalMules,
 			"ThreatLevel": "NORMAL",
 		},
@@ -28,42 +30,33 @@ func RenderDashboard(c *gin.Context) {
 	})
 }
 
-func RenderEvidenceVault(c *gin.Context) {
-	caseID := c.Param("case_id")
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"Message": "Evidence Vault Inspector",
-		"Stats": gin.H{
-			"ActiveHunts": 0,
-			"FrozenMules": 0,
-			"ThreatLevel": "CASE INSPECTOR: " + caseID,
-		},
-	})
-}
-
 func RenderMuleAccounts(c *gin.Context) {
 	var mules []database.MuleAccount
+	var totalMules int64
 	if database.DB != nil {
 		database.DB.Order("first_seen_at desc").Limit(50).Find(&mules)
+		database.DB.Model(&database.MuleAccount{}).Count(&totalMules)
 	}
 	
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"Message": "Mule Accounts Registry View",
+	c.HTML(http.StatusOK, "mules.html", gin.H{
+		"ActiveMenu": "mules",
 		"Stats": gin.H{
-			"ActiveHunts": 0,
-			"FrozenMules": len(mules),
-			"ThreatLevel": "ACTIVE",
+			"FrozenMules": totalMules,
 		},
 		"RecentMules": mules,
 	})
 }
 
-func RenderAnalytics(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"Message": "Graphical Telemetry & Analytics",
-		"Stats": gin.H{
-			"ActiveHunts": 0,
-			"FrozenMules": 0,
-			"ThreatLevel": "ANALYTICS MODE",
-		},
+func RenderLogs(c *gin.Context) {
+	c.HTML(http.StatusOK, "logs.html", gin.H{
+		"ActiveMenu": "logs",
 	})
+}
+
+func APIGetLogs(c *gin.Context) {
+	if logger.GlobalBuffer != nil {
+		c.JSON(http.StatusOK, logger.GlobalBuffer.GetLogs())
+	} else {
+		c.JSON(http.StatusOK, []string{})
+	}
 }

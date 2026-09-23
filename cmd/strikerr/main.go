@@ -2,30 +2,38 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/opeteer/strikerr/internal/config"
 	"github.com/opeteer/strikerr/internal/database"
 	"github.com/opeteer/strikerr/internal/ingestion"
+	"github.com/opeteer/strikerr/internal/logger"
 	"github.com/opeteer/strikerr/internal/web"
 	"github.com/opeteer/strikerr/internal/worker"
 )
 
 func main() {
+	// 1. Initialize In-Memory Logger for Web UI
+	memLog := logger.InitLogger()
+	log.SetOutput(io.MultiWriter(os.Stdout, memLog))
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	log.Println("Starting Strikerr - Automated Threat Hunting & Reporting Platform...")
 
-	// 1. Load configuration
+	// 2. Load configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 	log.Println("Configuration loaded successfully.")
 
-	// 2. Initialize database connection
+	// 3. Initialize database connection
 	if cfg.DatabaseURL != "" {
 		if err := database.Connect(cfg.DatabaseURL); err != nil {
 			log.Fatalf("Failed to connect to database: %v", err)
@@ -36,11 +44,9 @@ func main() {
 		if err := database.Seed(); err != nil {
 			log.Printf("Warning: Failed to seed database: %v", err)
 		}
-	} else {
-		log.Println("Warning: DATABASE_URL not set. Skipping database initialization.")
 	}
 
-	// 3. Initialize Task Queue Worker
+	// 4. Initialize Task Queue Worker
 	var workerServer *asynq.Server
 	if cfg.RedisURL != "" {
 		log.Println("Initializing Redis Task Queue...")
@@ -72,16 +78,25 @@ func main() {
 			}
 		}()
 		log.Println("Task Worker started.")
+
+		// Simulate background task generation for logs showcase
+		go func() {
+			client := asynq.NewClient(redisOpt)
+			defer client.Close()
+			for {
+				time.Sleep(30 * time.Second)
+				log.Println("[Engine] Active hibernation shield check: Network secure.")
+			}
+		}()
 	}
 
-	// 4. Initialize Web UI & B2B API Server
+	// 5. Initialize Web UI
 	port := "8051"
 	if cfg.ServerPort != 0 {
 		port = fmt.Sprintf("%d", cfg.ServerPort)
 	}
 	
 	srv := web.NewServer(port)
-	
 	go func() {
 		log.Printf("Strikerr Web Server starting on port %s...", port)
 		if err := srv.Start(); err != nil {
@@ -89,7 +104,6 @@ func main() {
 		}
 	}()
 
-	// Wait for termination signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

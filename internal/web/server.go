@@ -15,10 +15,8 @@ type Server struct {
 func NewServer(port string) *Server {
 	r := gin.Default()
 
-	// 1. Load HTML templates from internal/web/templates/
 	r.LoadHTMLGlob("internal/web/templates/*")
 
-	// 2. Setup Routes
 	setupRoutes(r)
 
 	return &Server{
@@ -28,21 +26,19 @@ func NewServer(port string) *Server {
 }
 
 func setupRoutes(r *gin.Engine) {
-	// --- Internal SOC Dashboard ---
 	dashboard := r.Group("/")
 	{
 		dashboard.GET("/", handlers.RenderDashboard)
-		dashboard.GET("/vault/:case_id", handlers.RenderEvidenceVault)
 		dashboard.GET("/mule-accounts", handlers.RenderMuleAccounts)
-		dashboard.GET("/analytics", handlers.RenderAnalytics)
+		dashboard.GET("/logs", handlers.RenderLogs)
 	}
 
-	// --- B2B Threat Intel API ---
 	api := r.Group("/api/v1")
 	{
 		api.GET("/feeds/mule-accounts", handlers.APIMuleAccountsFeed)
 		api.GET("/feeds/typosquatting", handlers.APITyposquattingFeed)
 		api.POST("/lookup/account", handlers.APILookupAccount)
+		api.GET("/logs", handlers.APIGetLogs)
 	}
 }
 
