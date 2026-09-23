@@ -32,7 +32,7 @@ func main() {
 	}
 
 	// 3. Initialize Web UI & B2B API Server
-	port := "8080"
+	port := "8051"
 	if cfg.ServerPort != 0 {
 		port = fmt.Sprintf("%d", cfg.ServerPort)
 	}

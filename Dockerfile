@@ -3,18 +3,24 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-# Install git and build dependencies
-RUN apk add --no-cache git
+# Enable CGO_ENABLED=0 and set GOPROXY
+ENV CGO_ENABLED=0
+ENV GOPROXY=https://proxy.golang.org,direct
 
-# Copy go mod files
+# Install git and ca-certificates
+RUN apk add --no-cache git ca-certificates
+
+# Copy go mod and sum files
 COPY go.mod go.sum ./
+
+# Download Go modules
 RUN go mod download
 
 # Copy source code
 COPY . .
 
 # Build single static binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o strikerr cmd/strikerr/main.go
+RUN go build -ldflags="-w -s" -o strikerr cmd/strikerr/main.go
 
 # --- Stage 2: Runtime Environment ---
 FROM ubuntu:22.04
@@ -37,10 +43,10 @@ COPY --from=builder /app/strikerr /app/strikerr
 COPY --from=builder /app/config /app/config
 
 # Expose Web Dashboard & API Port
-EXPOSE 8080
+EXPOSE 8051
 
 # Environment Defaults
 ENV GIN_MODE=release
-ENV SERVER_PORT=8080
+ENV SERVER_PORT=8051
 
 CMD ["/app/strikerr"]

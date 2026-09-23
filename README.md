@@ -108,7 +108,7 @@ docker compose up -d --build
 ```
 
 Setelah kontainer berjalan, buka browser dan akses Dashboard SOC Strikerr di:
-👉 **`http://localhost:8080`**
+👉 **`http://localhost:8051`**
 
 ---
 
