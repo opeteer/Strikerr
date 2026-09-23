@@ -29,12 +29,14 @@ func setupRoutes(r *gin.Engine) {
 	dashboard := r.Group("/")
 	{
 		dashboard.GET("/", handlers.RenderDashboard)
+		dashboard.GET("/analytics", handlers.RenderAnalytics)
 		dashboard.GET("/mule-accounts", handlers.RenderMuleAccounts)
 		dashboard.GET("/logs", handlers.RenderLogs)
 	}
 
 	api := r.Group("/api/v1")
 	{
+		api.GET("/stats", handlers.APIGetStats)
 		api.GET("/feeds/mule-accounts", handlers.APIMuleAccountsFeed)
 		api.GET("/feeds/typosquatting", handlers.APITyposquattingFeed)
 		api.POST("/lookup/account", handlers.APILookupAccount)

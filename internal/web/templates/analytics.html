@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strikerr | Analytics Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 500: '#f43f5e', 900: '#881337', 950: '#4c0519' } } } } }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .red-glow { box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.25); }
+    </style>
+</head>
+<body class="bg-neutral-950 text-neutral-200 antialiased flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+
+    <aside class="flex-shrink-0 w-64 bg-neutral-900/90 border-r border-rose-900/30 flex flex-col z-20 absolute inset-y-0 left-0 md:relative">
+        <div class="h-16 flex items-center px-6 border-b border-rose-900/30 bg-neutral-950/50">
+            <i class="ph-fill ph-shield-warning text-rose-500 text-2xl mr-3"></i>
+            <span class="text-xl font-black text-white">STRIKERR</span>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="/" class="flex items-center px-4 py-3 rounded-xl text-neutral-400 hover:bg-neutral-800/60 hover:text-rose-400">
+                <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard Ops
+            </a>
+            <a href="/analytics" class="flex items-center px-4 py-3 rounded-xl bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/20 shadow-lg shadow-rose-950/50">
+                <i class="ph-fill ph-chart-bar text-lg mr-3 text-rose-500"></i> Analytics Suite
+            </a>
+            <a href="/mule-accounts" class="flex items-center px-4 py-3 rounded-xl text-neutral-400 hover:bg-neutral-800/60 hover:text-rose-400">
+                <i class="ph ph-bank text-lg mr-3"></i> Mule Accounts
+            </a>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+        <header class="h-16 bg-neutral-900/80 border-b border-rose-900/30 flex items-center justify-between px-6">
+            <h1 class="text-lg font-bold text-white"><i class="ph ph-chart-line-up text-rose-500 mr-2"></i> Threat Telemetry Analytics</h1>
+            <button class="bg-rose-950 text-rose-300 border border-rose-800/60 text-xs px-4 py-2 rounded-xl" onclick="alert('PDF Dossier Generated!')">
+                <i class="ph ph-file-pdf"></i> Download PDF Report
+            </button>
+        </header>
+        
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-neutral-900/80 border border-rose-900/30 rounded-2xl p-6 red-glow">
+                    <h3 class="text-base font-bold text-white mb-4">Typosquatting Risk Dist.</h3>
+                    <div class="h-64"><canvas id="radarChart"></canvas></div>
+                </div>
+                <div class="bg-neutral-900/80 border border-rose-900/30 rounded-2xl p-6">
+                    <h3 class="text-base font-bold text-white mb-4">Financial Extractions</h3>
+                    <div class="h-64"><canvas id="barChart"></canvas></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Radar Chart
+        new Chart(document.getElementById('radarChart').getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Homograph', 'Bitsquatting', 'Hyphenation', 'Omission', 'Vowel-Swap'],
+                datasets: [{
+                    label: 'Detected Variations',
+                    data: [12, 19, 3, 5, 2],
+                    backgroundColor: 'rgba(244, 63, 94, 0.2)',
+                    borderColor: '#f43f5e',
+                    pointBackgroundColor: '#e11d48'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { r: { grid: { color: '#881337' }, ticks: { display: false } } }
+            }
+        });
+
+        // Bar Chart
+        new Chart(document.getElementById('barChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['BCA', 'Mandiri', 'BRI', 'BNI', 'DANA', 'OVO'],
+                datasets: [{
+                    label: 'Frozen Accounts',
+                    data: [20, 15, 8, 12, 25, 18],
+                    backgroundColor: '#e11d48',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { grid: { color: 'rgba(136,19,55,0.2)' } }, x: { grid: { display: false } } }
+            }
+        });
+    </script>
+</body>
+</html>

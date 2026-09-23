@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/opeteer/strikerr/internal/config"
@@ -41,12 +41,22 @@ func main() {
 		if err := database.AutoMigrate(); err != nil {
 			log.Fatalf("Failed to run database migrations: %v", err)
 		}
-		if err := database.Seed(); err != nil {
-			log.Printf("Warning: Failed to seed database: %v", err)
-		}
+	} else {
+		log.Println("Warning: DATABASE_URL not set. Skipping database initialization.")
 	}
 
-	// 4. Initialize Task Queue Worker
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// 4. Start Autonomous Threat Hunter Scanner Loop
+	hunter, err := ingestion.NewActiveHunter()
+	if err != nil {
+		log.Printf("Warning: Hunter initialization issue: %v", err)
+	} else {
+		go hunter.StartHuntingLoop(ctx)
+	}
+
+	// 5. Initialize Task Queue Worker
 	var workerServer *asynq.Server
 	if cfg.RedisURL != "" {
 		log.Println("Initializing Redis Task Queue...")
@@ -78,19 +88,9 @@ func main() {
 			}
 		}()
 		log.Println("Task Worker started.")
-
-		// Simulate background task generation for logs showcase
-		go func() {
-			client := asynq.NewClient(redisOpt)
-			defer client.Close()
-			for {
-				time.Sleep(30 * time.Second)
-				log.Println("[Engine] Active hibernation shield check: Network secure.")
-			}
-		}()
 	}
 
-	// 5. Initialize Web UI
+	// 6. Initialize Web UI Server
 	port := "8051"
 	if cfg.ServerPort != 0 {
 		port = fmt.Sprintf("%d", cfg.ServerPort)
@@ -109,6 +109,7 @@ func main() {
 	<-quit
 	
 	log.Println("Shutting down Strikerr...")
+	cancel()
 	if workerServer != nil {
 		workerServer.Shutdown()
 	}

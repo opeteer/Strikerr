@@ -5,7 +5,9 @@ go 1.25.0
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/hibiken/asynq v0.26.0
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/mxschmitt/playwright-go v0.6201.1
 	github.com/spf13/viper v1.21.0
 	gorm.io/driver/postgres v1.6.3

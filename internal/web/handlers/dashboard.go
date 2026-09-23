@@ -9,48 +9,15 @@ import (
 )
 
 func RenderDashboard(c *gin.Context) {
-	var totalMules int64
-	var totalDomains int64
-	var recentMules []database.MuleAccount
-
-	if database.DB != nil {
-		database.DB.Model(&database.MuleAccount{}).Count(&totalMules)
-		database.DB.Model(&database.TyposquattingDomain{}).Count(&totalDomains)
-		database.DB.Order("first_seen_at desc").Limit(5).Find(&recentMules)
-	}
-
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"ActiveMenu": "dashboard",
-		"Stats": gin.H{
-			"ActiveHunts": totalDomains,
-			"FrozenMules": totalMules,
-			"ThreatLevel": "NORMAL",
-		},
-		"RecentMules": recentMules,
-	})
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{})
 }
 
 func RenderMuleAccounts(c *gin.Context) {
-	var mules []database.MuleAccount
-	var totalMules int64
-	if database.DB != nil {
-		database.DB.Order("first_seen_at desc").Limit(50).Find(&mules)
-		database.DB.Model(&database.MuleAccount{}).Count(&totalMules)
-	}
-	
-	c.HTML(http.StatusOK, "mules.html", gin.H{
-		"ActiveMenu": "mules",
-		"Stats": gin.H{
-			"FrozenMules": totalMules,
-		},
-		"RecentMules": mules,
-	})
+	c.HTML(http.StatusOK, "mules.html", gin.H{})
 }
 
 func RenderLogs(c *gin.Context) {
-	c.HTML(http.StatusOK, "logs.html", gin.H{
-		"ActiveMenu": "logs",
-	})
+	c.HTML(http.StatusOK, "logs.html", gin.H{})
 }
 
 func APIGetLogs(c *gin.Context) {
@@ -59,4 +26,35 @@ func APIGetLogs(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, []string{})
 	}
+}
+
+func APIGetStats(c *gin.Context) {
+	var totalMules int64
+	var totalDomains int64
+	var totalEvidence int64
+	var recentMules []database.MuleAccount
+
+	if database.DB != nil {
+		database.DB.Model(&database.MuleAccount{}).Count(&totalMules)
+		database.DB.Model(&database.TyposquattingDomain{}).Count(&totalDomains)
+		database.DB.Model(&database.EvidenceVault{}).Count(&totalEvidence)
+		database.DB.Order("first_seen_at desc").Limit(10).Find(&recentMules)
+	}
+
+	threatLevel := "NORMAL"
+	if totalDomains > 0 || totalMules > 0 {
+		threatLevel = "ELEVATED THREAT"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"active_hunts":       totalDomains,
+		"frozen_mules":       totalMules,
+		"verified_takedowns": totalEvidence,
+		"threat_level":       threatLevel,
+		"recent_mules":       recentMules,
+	})
+}
+
+func RenderAnalytics(c *gin.Context) {
+	c.HTML(http.StatusOK, "analytics.html", gin.H{})
 }

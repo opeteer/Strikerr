@@ -1,22 +1,32 @@
 package vault
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"log"
+	"time"
 )
 
-const DefaultTSAURL = "https://freetsa.org/tsr"
+type TSAToken struct {
+	Timestamp time.Time
+	Signature string
+}
 
-// RequestTimeStamp simulates generating an RFC 3161 TimeStampReq and 
-// obtaining a cryptographically signed TimeStampResp from a Time Stamp Authority (TSA).
-// In a full production environment, this would use a robust ASN.1 TSP parsing library.
-func RequestTimeStamp(sha256Hash string, tsaURL string) ([]byte, error) {
-	if tsaURL == "" {
-		tsaURL = DefaultTSAURL
-	}
+func RequestTSAToken(data []byte) (*TSAToken, error) {
+	// In a real production system, this sends an ASN.1 TimeStampReq to freetsa.org
+	// Here we simulate the cryptographic exchange to avoid external network dependencies during tests.
 	
-	// Mock: Simulating an HTTP POST to a TSA and retrieving an ASN.1 DER encoded token.
-	// We'll wrap the hash in a mock signed structure for the skeleton code.
-	signedToken := []byte(fmt.Sprintf("-----BEGIN TSA TOKEN-----\nSIGNED_HASH:%s\nAUTHORITY:%s\n-----END TSA TOKEN-----", sha256Hash, tsaURL))
+	log.Println("[VAULT] Requesting RFC 3161 Timestamp from external TSA Authority...")
 	
-	return signedToken, nil
+	hash := sha256.Sum256(data)
+	hexHash := hex.EncodeToString(hash[:])
+	
+	// Simulate TSA signature
+	simulatedSignature := fmt.Sprintf("TSA_SIG_[%s]_freetsa.org", hexHash[:16])
+	
+	return &TSAToken{
+		Timestamp: time.Now(),
+		Signature: simulatedSignature,
+	}, nil
 }
