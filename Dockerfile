@@ -1,5 +1,5 @@
-# --- Stage 1: Build Go Binary ---
-FROM golang:1.22-alpine AS builder
+# --- Stage 1: Build Go Binary (Use latest Go alpine image for toolchain compatibility) ---
+FROM golang:alpine AS builder
 
 WORKDIR /app
 
