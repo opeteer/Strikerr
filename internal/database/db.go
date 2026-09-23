@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -34,11 +35,21 @@ func Connect(dsn string) error {
 
 func AutoMigrate() error {
 	log.Println("Running database migrations...")
-	return DB.AutoMigrate(
+	err := DB.AutoMigrate(
 		&EvidenceVault{},
 		&MuleAccount{},
 		&TyposquattingDomain{},
 	)
+	if err != nil {
+		return err
+	}
+
+	if os.Getenv("CLEAN_START_ON_BOOT") == "true" {
+		log.Println("CLEAN_START_ON_BOOT is true! Truncating all tables for a fresh 0 state...")
+		DB.Exec("TRUNCATE TABLE mule_accounts, typosquatting_domains, evidence_vaults RESTART IDENTITY CASCADE;")
+	}
+
+	return nil
 }
 
 // Seed adds some initial testing data to the DB if it is empty.

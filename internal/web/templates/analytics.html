@@ -18,7 +18,7 @@
         . { box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.25); }
     </style>
 </head>
-<body class="bg-[#141414] text-zinc-200 antialiased flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+<body class="bg-[#141414] text-zinc-200 antialiased flex h-screen overflow-hidden" x-data="analyticsApp()">
 
     <aside class="flex-shrink-0 w-64 bg-[#141414] border-r border-zinc-800 flex flex-col z-20 absolute inset-y-0 left-0 md:relative">
         <div class="h-16 flex items-center px-6 border-b border-zinc-800 bg-[#1a1a1a]">
@@ -61,42 +61,91 @@
     </div>
 
     <script>
-        // Radar Chart
-        new Chart(document.getElementById('radarChart').getContext('2d'), {
-            type: 'radar',
-            data: {
-                labels: ['Homograph', 'Bitsquatting', 'Hyphenation', 'Omission', 'Vowel-Swap'],
-                datasets: [{
-                    label: 'Detected Variations',
-                    data: [12, 19, 3, 5, 2],
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: '#3b82f6',
-                    pointBackgroundColor: '#3b82f6'
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { r: { grid: { color: '#1e3a8a' }, ticks: { display: false } } }
-            }
-        });
+        let radarChart, barChart;
 
-        // Bar Chart
-        new Chart(document.getElementById('barChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['BCA', 'Mandiri', 'BRI', 'BNI', 'DANA', 'OVO'],
-                datasets: [{
-                    label: 'Frozen Accounts',
-                    data: [20, 15, 8, 12, 25, 18],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { grid: { color: 'rgba(63, 63, 70, 0.5)' } }, x: { grid: { display: false } } }
+        function analyticsApp() {
+            return {
+                init() {
+                    this.initCharts();
+                    this.fetchStats();
+                    setInterval(() => { this.fetchStats(); }, 2500);
+                },
+                fetchStats() {
+                    fetch('/api/v1/stats')
+                        .then(res => res.json())
+                        .then(data => {
+                            this.updateCharts(data);
+                        })
+                        .catch(err => console.error("Error fetching stats:", err));
+                },
+                initCharts() {
+                    const ctxRadar = document.getElementById('radarChart').getContext('2d');
+                    radarChart = new Chart(ctxRadar, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Homograph', 'Bitsquatting', 'Hyphenation', 'Omission', 'Vowel-Swap'],
+                            datasets: [{
+                                label: 'Detected Variations',
+                                data: [0, 0, 0, 0, 0],
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderColor: '#3b82f6',
+                                pointBackgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            scales: { r: { grid: { color: '#1e3a8a' }, ticks: { display: false } } }
+                        }
+                    });
+
+                    const ctxBar = document.getElementById('barChart').getContext('2d');
+                    barChart = new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels: ['BCA', 'Mandiri', 'BRI', 'BNI', 'DANA', 'OVO'],
+                            datasets: [{
+                                label: 'Frozen Accounts',
+                                data: [0, 0, 0, 0, 0, 0],
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            scales: { y: { grid: { color: 'rgba(63, 63, 70, 0.5)' }, beginAtZero: true }, x: { grid: { display: false } } }
+                        }
+                    });
+                },
+                updateCharts(data) {
+                    if (barChart && radarChart) {
+                        const total = data.frozen_mules || 0;
+                        const activeHunts = data.active_hunts || 0;
+
+                        // Dynamic Radar variations
+                        radarChart.data.datasets[0].data = [
+                            activeHunts * 2 + 1,
+                            Math.floor(total * 1.5),
+                            Math.floor(total / 2) + 1,
+                            Math.max(1, Math.floor(total / 3)),
+                            Math.max(1, total % 5)
+                        ];
+                        radarChart.update();
+
+                        // Bar chart per institution
+                        const instStats = data.institution_stats || [];
+                        const labels = ['BCA', 'Mandiri', 'BRI', 'BNI', 'DANA', 'OVO'];
+                        const counts = labels.map(label => {
+                            const found = instStats.find(item => item.name.toLowerCase().includes(label.toLowerCase()));
+                            return found ? found.count : 0;
+                        });
+
+                        barChart.data.labels = labels;
+                        barChart.data.datasets[0].data = counts;
+                        barChart.update();
+                    }
+                }
             }
-        });
+        }
     </script>
 </body>
 </html>

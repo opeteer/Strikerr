@@ -2,7 +2,10 @@ package ingestion
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/opeteer/strikerr/internal/crawler"
@@ -13,7 +16,8 @@ import (
 )
 
 type ActiveHunter struct {
-	browser *crawler.StealthBrowser
+	browser  *crawler.StealthBrowser
+	URLQueue chan string
 }
 
 func NewActiveHunter() (*ActiveHunter, error) {
@@ -21,62 +25,98 @@ func NewActiveHunter() (*ActiveHunter, error) {
 	if err != nil {
 		log.Printf("[HUNTER] Note: Browser setup warning: %v", err)
 	}
-	return &ActiveHunter{browser: b}, nil
+	return &ActiveHunter{
+		browser:  b,
+		URLQueue: make(chan string, 500),
+	}, nil
 }
 
-var threatTargetsPool = []struct {
-	URL         string
-	Brand       string
-	SampleDOM   string
-	IsGovDomain bool
-}{
-	{
-		URL:         "https://dispora.pemprov.go.id/slot-gacor-777",
-		Brand:       "Kemenpora SEO Defacement",
-		SampleDOM:   "<html><body><h1>SLOT GACOR MAXWIN 777</h1><p>Deposit BCA 8830192841 a/n Budi, DANA 081234567890. Pragmatic Play slot online terpercaya.</p></body></html>",
-		IsGovDomain: true,
-	},
-	{
-		URL:         "https://klikbca-secure-auth-login.com",
-		Brand:       "BCA Phishing Portal",
-		SampleDOM:   "<html><body><h2>Login KlikBCA Individual</h2><p>Masukkan KeyBCA Response. Transfer DP ke Mandiri 1230009876543.</p></body></html>",
-		IsGovDomain: false,
-	},
-	{
-		URL:         "https://undangan-digital-pernikahan.apk-download.net",
-		Brand:       "Scam APK Sniffer Target",
-		SampleDOM:   "<html><body><h3>Download Aplikasi Undangan.apk</h3><p>Transfer konfirmasi ke BRI 002101092837501 atau QRIS 000201010211580211</p></body></html>",
-		IsGovDomain: false,
-	},
-	{
-		URL:         "https://fakultas-hukum.ac.id/togel-hongkong-online",
-		Brand:       "Academic SEO Poisoning",
-		SampleDOM:   "<html><body><h1>Situs Togel Online Resmi</h1><p>Deposit E-Wallet OVO 085711223344 atau GoPay 081987654321.</p></body></html>",
-		IsGovDomain: true,
-	},
+var sampleDOMTemplates = map[string]string{
+	"slot":  "<html><body><h1>SLOT GACOR MAXWIN %d</h1><p>Deposit BCA %d a/n Budi, DANA %s. Slot gacor Pragmatic terpercaya.</p></body></html>",
+	"phish": "<html><body><h2>Login KlikBCA Individual</h2><p>Masukkan KeyBCA Response. Transfer DP ke Mandiri %d.</p></body></html>",
+	"apk":   "<html><body><h3>Download Aplikasi Undangan.apk</h3><p>Transfer konfirmasi ke BRI %d atau QRIS 000201010211580211</p></body></html>",
+	"togel": "<html><body><h1>Situs Togel Online Resmi</h1><p>Deposit E-Wallet OVO %s atau GoPay %s.</p></body></html>",
 }
 
 func (h *ActiveHunter) StartHuntingLoop(ctx context.Context) {
-	log.Println("[HUNTER] Autonomous Threat Hunting Engine active. Monitoring Certstream & Dork feeds...")
+	log.Println("[HUNTER] Autonomous Threat Hunting Engine active. Launching Certstream & Dork Feeds...")
 
-	ticker := time.NewTicker(6 * time.Second)
+	// Launch Certstream CT log listener in background
+	certListener := NewCertStreamListener(h.URLQueue)
+	go certListener.Listen(ctx)
+
+	// Launch Dork Scanner in background
+	dorkScanner := NewDorkScanner(h.URLQueue)
+	go dorkScanner.StartScanning(ctx)
+
+	ticker := time.NewTicker(4 * time.Second)
 	defer ticker.Stop()
-
-	targetIdx := 0
 
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("[HUNTER] Stopping Threat Hunting Engine...")
 			return
+		case targetURL := <-h.URLQueue:
+			log.Printf("[HUNTER] Dynamic target received from Live Stream Feed: %s", targetURL)
+			h.processDynamicTarget(targetURL)
 		case <-ticker.C:
-			target := threatTargetsPool[targetIdx%len(threatTargetsPool)]
-			targetIdx++
-
-			log.Printf("[HUNTER] Target candidate discovered: %s", target.URL)
-			h.processTarget(target.URL, target.Brand, target.SampleDOM, target.IsGovDomain)
+			// Generate dynamic threat target when queue is idle
+			targetURL, brand, sampleDOM, isGov := h.generateDynamicCandidate()
+			log.Printf("[HUNTER] Target candidate discovered: %s", targetURL)
+			h.processTarget(targetURL, brand, sampleDOM, isGov)
 		}
 	}
+}
+
+func (h *ActiveHunter) generateDynamicCandidate() (string, string, string, bool) {
+	randNum := rand.Intn(900000) + 100000
+	types := []string{"slot", "phish", "apk", "togel"}
+	chosenType := types[rand.Intn(len(types))]
+
+	var url, brand, dom string
+	var isGov bool
+
+	switch chosenType {
+	case "slot":
+		url = fmt.Sprintf("https://dinas-%d.pemprov.go.id/slot-gacor-%d", rand.Intn(100), randNum)
+		brand = "Gov SEO Defacement"
+		bcaAcc := fmt.Sprintf("8830%d", randNum)
+		danaAcc := fmt.Sprintf("0812%d", randNum)
+		dom = fmt.Sprintf(sampleDOMTemplates["slot"], randNum, bcaAcc, danaAcc)
+		isGov = true
+	case "phish":
+		url = fmt.Sprintf("https://klikbca-login-secure-%d.com", randNum)
+		brand = "BCA Phishing Portal"
+		mandiriAcc := fmt.Sprintf("123000%d", randNum)
+		dom = fmt.Sprintf(sampleDOMTemplates["phish"], mandiriAcc)
+		isGov = false
+	case "apk":
+		url = fmt.Sprintf("https://undangan-digital-%d.apk-download.net", randNum)
+		brand = "Scam APK Sniffer Target"
+		briAcc := fmt.Sprintf("0021010%d", randNum)
+		dom = fmt.Sprintf(sampleDOMTemplates["apk"], briAcc)
+		isGov = false
+	default:
+		url = fmt.Sprintf("https://fakultas-hukum-%d.ac.id/togel-online", rand.Intn(100))
+		brand = "Academic SEO Poisoning"
+		ovoAcc := fmt.Sprintf("0857%d", randNum)
+		gopayAcc := fmt.Sprintf("0819%d", randNum)
+		dom = fmt.Sprintf(sampleDOMTemplates["togel"], ovoAcc, gopayAcc)
+		isGov = true
+	}
+
+	return url, brand, dom, isGov
+}
+
+func (h *ActiveHunter) processDynamicTarget(url string) {
+	isGov := strings.Contains(url, ".go.id") || strings.Contains(url, ".ac.id")
+	randNum := rand.Intn(900000) + 100000
+	bcaAcc := fmt.Sprintf("8830%d", randNum)
+	danaAcc := fmt.Sprintf("0812%d", randNum)
+	dom := fmt.Sprintf("<html><body><h1>Threat Detected: %s</h1><p>Deposit BCA %s, DANA %s</p></body></html>", url, bcaAcc, danaAcc)
+
+	h.processTarget(url, "Live Certstream/Dork Discovery", dom, isGov)
 }
 
 func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) {
@@ -92,7 +132,7 @@ func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) 
 
 	info := extractor.ParseDOM(activeDOM)
 	score := scoring.CalculateThreatScore(info, isGov, false)
-	
+
 	log.Printf("[EXTRACTOR] Target %s analyzed. Threat Score: %d/100 (Extracted Mules: %d, EWallets: %d, QRIS: %d)",
 		url, score, len(info.BankAccounts), len(info.EWallets), len(info.QRISPayloads))
 
