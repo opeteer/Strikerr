@@ -38,6 +38,12 @@ func (mw *MemoryWriter) GetLogs() []string {
 	return res
 }
 
+func (mw *MemoryWriter) Reset() {
+	mw.mu.Lock()
+	defer mw.mu.Unlock()
+	mw.lines = make([]string, 0, mw.max)
+}
+
 var GlobalBuffer *MemoryWriter
 
 func InitLogger() *MemoryWriter {

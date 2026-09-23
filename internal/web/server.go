@@ -42,6 +42,9 @@ func setupRoutes(r *gin.Engine) {
 		api.GET("/feeds/typosquatting", handlers.APITyposquattingFeed)
 		api.POST("/lookup/account", handlers.APILookupAccount)
 		api.GET("/logs", handlers.APIGetLogs)
+		api.POST("/system/purge", handlers.APIPurgeDatabase)
+		api.POST("/scan/target", handlers.APIScanTarget)
+		api.GET("/dossier/download", handlers.APIDownloadDossier)
 	}
 }
 

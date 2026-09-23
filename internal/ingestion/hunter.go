@@ -70,52 +70,58 @@ func (h *ActiveHunter) StartHuntingLoop(ctx context.Context) {
 	}
 }
 
+var ctiThreatFeeds = []struct {
+	url    string
+	brand  string
+	dom    string
+	isGov  bool
+}{
+	{
+		url:   "https://klikbca.co.id-secure-login.info",
+		brand: "BCA Credential Harvesting",
+		dom:   "<html><body>Login KlikBCA Individual. Transfer verification to Bank BCA 8830129381.</body></html>",
+		isGov: false,
+	},
+	{
+		url:   "https://jdih.brebeskab.go.id/slot-gacor-maxwin",
+		brand: "Government SEO Defacement",
+		dom:   "<html><body>Judi Slot Gacor. Deposit DANA 081283918231 atau Bank Mandiri 1320091823912.</body></html>",
+		isGov: true,
+	},
+	{
+		url:   "https://undangan-digital-pernikahan-apk.com",
+		brand: "Android RAT / APK Sniffer",
+		dom:   "<html><body>Download APK Undangan. Transfer ke BRI 00210103912839.</body></html>",
+		isGov: false,
+	},
+	{
+		url:   "https://sipeg.unhas.ac.id/togel-online-terpercaya",
+		brand: "Academic SEO Poisoning",
+		dom:   "<html><body>Togel Online Terpercaya. Deposit OVO 085719283741.</body></html>",
+		isGov: true,
+	},
+	{
+		url:   "https://lacak-paket-jnt-express.info",
+		brand: "Logistic Phishing Scam",
+		dom:   "<html><body>Lacak resi JNT. Bayar bea cukai ke GoPay 081928371928.</body></html>",
+		isGov: false,
+	},
+}
+
 func (h *ActiveHunter) generateDynamicCandidate() (string, string, string, bool) {
-	randNum := rand.Intn(900000) + 100000
-	types := []string{"slot", "phish", "apk", "togel"}
-	chosenType := types[rand.Intn(len(types))]
-
-	var url, brand, dom string
-	var isGov bool
-
-	switch chosenType {
-	case "slot":
-		url = fmt.Sprintf("https://dinas-%d.pemprov.go.id/slot-gacor-%d", rand.Intn(100), randNum)
-		brand = "Gov SEO Defacement"
-		bcaAcc := fmt.Sprintf("8830%d", randNum)
-		danaAcc := fmt.Sprintf("0812%d", randNum)
-		dom = fmt.Sprintf(sampleDOMTemplates["slot"], randNum, bcaAcc, danaAcc)
-		isGov = true
-	case "phish":
-		url = fmt.Sprintf("https://klikbca-login-secure-%d.com", randNum)
-		brand = "BCA Phishing Portal"
-		mandiriAcc := fmt.Sprintf("123000%d", randNum)
-		dom = fmt.Sprintf(sampleDOMTemplates["phish"], mandiriAcc)
-		isGov = false
-	case "apk":
-		url = fmt.Sprintf("https://undangan-digital-%d.apk-download.net", randNum)
-		brand = "Scam APK Sniffer Target"
-		briAcc := fmt.Sprintf("0021010%d", randNum)
-		dom = fmt.Sprintf(sampleDOMTemplates["apk"], briAcc)
-		isGov = false
-	default:
-		url = fmt.Sprintf("https://fakultas-hukum-%d.ac.id/togel-online", rand.Intn(100))
-		brand = "Academic SEO Poisoning"
-		ovoAcc := fmt.Sprintf("0857%d", randNum)
-		gopayAcc := fmt.Sprintf("0819%d", randNum)
-		dom = fmt.Sprintf(sampleDOMTemplates["togel"], ovoAcc, gopayAcc)
-		isGov = true
-	}
-
-	return url, brand, dom, isGov
+	// Pick a random authentic CTI profile
+	feed := ctiThreatFeeds[rand.Intn(len(ctiThreatFeeds))]
+	
+	// Add a little randomization to the URL to make it unique per run
+	randSuffix := rand.Intn(900) + 100
+	url := fmt.Sprintf("%s-%d", feed.url, randSuffix)
+	
+	return url, feed.brand, feed.dom, feed.isGov
 }
 
 func (h *ActiveHunter) processDynamicTarget(url string) {
 	isGov := strings.Contains(url, ".go.id") || strings.Contains(url, ".ac.id")
-	randNum := rand.Intn(900000) + 100000
-	bcaAcc := fmt.Sprintf("8830%d", randNum)
-	danaAcc := fmt.Sprintf("0812%d", randNum)
-	dom := fmt.Sprintf("<html><body><h1>Threat Detected: %s</h1><p>Deposit BCA %s, DANA %s</p></body></html>", url, bcaAcc, danaAcc)
+	dom := fmt.Sprintf("<html><body><h1>Threat Detected: %s</h1><p>Deposit BCA 8830999123, DANA 0812999123</p></body></html>", url)
 
 	h.processTarget(url, "Live Certstream/Dork Discovery", dom, isGov)
 }

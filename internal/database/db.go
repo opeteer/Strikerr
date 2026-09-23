@@ -46,10 +46,15 @@ func AutoMigrate() error {
 
 	if os.Getenv("CLEAN_START_ON_BOOT") == "true" {
 		log.Println("CLEAN_START_ON_BOOT is true! Truncating all tables for a fresh 0 state...")
-		DB.Exec("TRUNCATE TABLE mule_accounts, typosquatting_domains, evidence_vaults RESTART IDENTITY CASCADE;")
+		TruncateDatabase()
 	}
 
 	return nil
+}
+
+func TruncateDatabase() error {
+	log.Println("Purging database to 0 (Truncating tables)...")
+	return DB.Exec("TRUNCATE TABLE mule_accounts, typosquatting_domains, evidence_vaults RESTART IDENTITY CASCADE;").Error
 }
 
 // Seed adds some initial testing data to the DB if it is empty.

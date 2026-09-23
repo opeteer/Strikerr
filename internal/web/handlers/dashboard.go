@@ -100,3 +100,22 @@ func APIGetStats(c *gin.Context) {
 func RenderAnalytics(c *gin.Context) {
 	c.HTML(http.StatusOK, "analytics.html", gin.H{})
 }
+
+func APIPurgeDatabase(c *gin.Context) {
+	if database.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database not initialized"})
+		return
+	}
+	
+	if err := database.TruncateDatabase(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	// Also clear in-memory logger
+	if logger.GlobalBuffer != nil {
+		logger.GlobalBuffer.Reset()
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Database and logs purged successfully"})
+}
