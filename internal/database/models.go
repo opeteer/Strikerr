@@ -43,5 +43,8 @@ type TyposquattingDomain struct {
 	ResolvedIP          string    `gorm:"size:45"`
 	EvidenceVaultID     *uuid.UUID
 	EvidenceVault       EvidenceVault
-	ThreatStatus        string    `gorm:"size:32;default:'SUSPICIOUS_REGISTERED'"`
+	ThreatStatus        string    `gorm:"size:64;default:'SUSPICIOUS_REGISTERED'"`
+	ReportedAt          *time.Time
+	ReportRecipient     string    `gorm:"size:128"`
+	SmiSignatureHash    string    `gorm:"size:255"`
 }

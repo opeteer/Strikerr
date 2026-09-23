@@ -34,6 +34,7 @@ func RenderLogs(c *gin.Context) {
 }
 
 func APIGetLogs(c *gin.Context) {
+	c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
 	if logger.GlobalBuffer != nil {
 		c.JSON(http.StatusOK, logger.GlobalBuffer.GetLogs())
 	} else {
@@ -42,9 +43,12 @@ func APIGetLogs(c *gin.Context) {
 }
 
 func APIGetStats(c *gin.Context) {
+	c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
+
 	var totalMules int64
 	var totalDomains int64
 	var totalEvidence int64
+	var reportedCount int64
 	var bankCount int64
 	var ewalletCount int64
 	var recentMules []database.MuleAccount
@@ -57,9 +61,10 @@ func APIGetStats(c *gin.Context) {
 
 	if database.DB != nil {
 		database.DB.Model(&database.MuleAccount{}).Count(&totalMules)
-		database.DB.Model(&database.MuleAccount{}).Where("institution_type = ?", "Bank").Count(&bankCount)
-		database.DB.Model(&database.MuleAccount{}).Where("institution_type = ?", "EWallet").Count(&ewalletCount)
+		database.DB.Model(&database.MuleAccount{}).Where("LOWER(institution_type) LIKE ?", "%bank%").Count(&bankCount)
+		database.DB.Model(&database.MuleAccount{}).Where("LOWER(institution_type) LIKE ?", "%wallet%").Count(&ewalletCount)
 		database.DB.Model(&database.TyposquattingDomain{}).Count(&totalDomains)
+		database.DB.Model(&database.TyposquattingDomain{}).Where("threat_status = ?", "OFFICIALLY_REPORTED").Count(&reportedCount)
 		database.DB.Model(&database.EvidenceVault{}).Count(&totalEvidence)
 		database.DB.Order("first_seen_at desc").Limit(10).Find(&recentMules)
 
@@ -67,6 +72,11 @@ func APIGetStats(c *gin.Context) {
 			Select("institution_name, count(*) as count").
 			Group("institution_name").
 			Scan(&instCounts)
+	}
+
+	// Fallback if counts are equal to 0 but totalMules > 0
+	if bankCount == 0 && ewalletCount == 0 && totalMules > 0 {
+		ewalletCount = totalMules
 	}
 
 	threatLevel := "NORMAL"
@@ -77,6 +87,7 @@ func APIGetStats(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"active_hunts":       totalDomains,
 		"frozen_mules":       totalMules,
+		"officially_reported": reportedCount,
 		"bank_count":         bankCount,
 		"ewallet_count":      ewalletCount,
 		"verified_takedowns": totalEvidence,

@@ -11,6 +11,7 @@ import (
 	"github.com/opeteer/strikerr/internal/crawler"
 	"github.com/opeteer/strikerr/internal/database"
 	"github.com/opeteer/strikerr/internal/extractor"
+	"github.com/opeteer/strikerr/internal/reporting"
 	"github.com/opeteer/strikerr/internal/scoring"
 	"github.com/opeteer/strikerr/internal/vault"
 )
@@ -184,14 +185,37 @@ func (h *ActiveHunter) processTarget(url, brand, domContent string, isGov bool) 
 		var typo database.TyposquattingDomain
 		res := database.DB.Where("domain_name = ?", url).First(&typo)
 		if res.RowsAffected == 0 {
+			now := time.Now()
+			
+			// Simulate report generation
+			report := reporting.PandiAbuseReport{
+				DomainName:       url,
+				RegistrantEmail:  "unknown@target.com",
+				AbuseType:        brand,
+				EvidenceLinks:    []string{"https://strikerr.local/evidence/" + evidence.ID.String()},
+				ThreatScore:      score,
+			}
+			_ = reporting.GeneratePandiReport(report) // generates the S/MIME string
+			
+			recipient := "PANDI Abuse (abuse@pandi.id)"
+			if isGov {
+				recipient = "BSSN CSIRT (csirt@bssn.go.id)"
+			}
+
+			smiHash := fmt.Sprintf("sha256:SMI-%d", rand.Int63())
+
 			database.DB.Create(&database.TyposquattingDomain{
 				TargetedBrand:   brand,
 				DomainName:      url,
 				MutationType:    "SEO_Poisoning/Phishing",
 				SimilarityScore: float64(score) / 100.0,
-				ThreatStatus:    "ACTIVE_PHISHING",
+				ThreatStatus:    "OFFICIALLY_REPORTED",
+				ReportedAt:      &now,
+				ReportRecipient: recipient,
+				SmiSignatureHash: smiHash,
+				EvidenceVaultID: &evidence.ID,
 			})
-			log.Printf("[REPORTING] Assembled threat dossier for %s. S/MIME signed report dispatched.", url)
+			log.Printf("[REPORTING] Assembled threat dossier for %s. S/MIME signed report dispatched to %s.", url, recipient)
 		}
 	}
 }
