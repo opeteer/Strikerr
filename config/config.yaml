@@ -1,9 +1,0 @@
-server:
-  port: 8051
-  mode: release
-
-database:
-  url: "postgres://strikerr_user:strikerr_password@postgres:5451/strikerr_db?sslmode=disable"
-
-redis:
-  url: "redis:6351"
