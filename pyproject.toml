@@ -1,69 +1,51 @@
 [build-system]
-requires = ["setuptools>=83"]
+requires = ["setuptools>=68.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Django"
-dynamic = ["version"]
-requires-python = ">= 3.12"
-dependencies = [
-    "asgiref>=3.12.1",
-    "sqlparse>=0.5.0",
-    "tzdata; sys_platform == 'win32'",
-]
+name = "strikerr"
+version = "0.1.0"
+description = "Automated Threat Hunting, Detection Engine & Evidence Vault for Scam, Online Gambling (Judol), and Phishing."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
 authors = [
-  {name = "Django Software Foundation", email = "foundation@djangoproject.com"},
+    { name = "Strikerr Security Architecture Team", email = "security@strikerr.id" }
 ]
-description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
-readme = "README.rst"
-license = "BSD-3-Clause"
-license-files = ["LICENSE", "LICENSE.python", "AUTHORS"]
-classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Environment :: Web Environment",
-    "Framework :: Django",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: Free Threading :: 2 - Beta",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Topic :: Internet :: WWW/HTTP :: WSGI",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+dependencies = [
+    "django>=5.1,<6.0",
+    "psycopg[binary]>=3.2",
+    "celery[redis,rabbitmq]>=5.4.0",
+    "redis>=5.0.0",
+    "curl_cffi>=0.7.2",
+    "httpx>=0.27.0",
+    "playwright>=1.46.0",
+    "pyahocorasick>=2.1.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.3.0",
+    "dnspython>=2.6.1",
+    "tldextract>=5.1.2",
+    "cryptography>=43.0.0",
+    "minio>=7.2.7",
+    "pydantic>=2.8.0",
+    "asgiref>=3.8.0",
+    "reportlab>=4.2.0",
 ]
 
 [project.optional-dependencies]
-argon2 = ["argon2-cffi>=23.1.0"]
-bcrypt = ["bcrypt>=4.1.1"]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-django>=4.8.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.5.0",
+]
 
-[project.scripts]
-django-admin = "django.core.management:execute_from_command_line"
-
-[project.urls]
-Homepage = "https://www.djangoproject.com/"
-Documentation = "https://docs.djangoproject.com/"
-"Release notes" = "https://docs.djangoproject.com/en/stable/releases/"
-Funding = "https://www.djangoproject.com/fundraising/"
-Source = "https://github.com/django/django"
-Tracker = "https://code.djangoproject.com/"
-
-[tool.black]
-target-version = ["py312"]
-force-exclude = "tests/test_runner_apps/tagged/tests_syntax_error.py"
-
-[tool.isort]
-profile = "black"
-default_section = "THIRDPARTY"
-known_first_party = "django"
-
-[tool.setuptools.dynamic]
-version = {attr = "django.__version__"}
-
-[tool.setuptools.packages.find]
-include = ["django*"]
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --tb=short -o cache_dir=/tmp/.pytest_cache"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"

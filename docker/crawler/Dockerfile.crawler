@@ -1,0 +1,49 @@
+FROM mcr.microsoft.com/playwright/python:v1.46.0-jammy
+
+LABEL maintainer="Strikerr Security Architecture Team <security@strikerr.id>"
+LABEL description="Hardened Rootless Crawler Container for Strikerr Threat Hunting"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iptables \
+    iproute2 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create unprivileged execution user
+RUN groupadd -g 10001 pwuser && \
+    useradd -u 10001 -g pwuser -m -s /bin/bash pwuser
+
+WORKDIR /app
+
+# Install project dependencies
+COPY pyproject.toml /app/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    django>=5.1,<6.0 \
+    celery[redis,rabbitmq]>=5.4.0 \
+    playwright>=1.46.0 \
+    curl_cffi>=0.7.2 \
+    httpx>=0.27.0 \
+    dnspython>=2.6.1 \
+    pyahocorasick>=2.1.0 \
+    beautifulsoup4>=4.12.0 \
+    lxml>=5.3.0 \
+    tldextract>=5.1.2 \
+    cryptography>=43.0.0 \
+    minio>=7.2.7 \
+    pydantic>=2.8.0 \
+    reportlab>=4.2.0
+
+# Install Playwright browser binaries
+RUN playwright install chromium
+
+# Copy application source
+COPY --chown=pwuser:pwuser ./strikerr /app/strikerr
+COPY --chown=pwuser:pwuser ./manage.py /app/manage.py
+
+# Create mount points for in-memory tmpfs
+RUN mkdir -p /tmp /home/pwuser/.cache /home/pwuser/.config && \
+    chown -R pwuser:pwuser /tmp /home/pwuser
+
+USER pwuser
+CMD ["celery", "-A", "strikerr.celery", "worker", "-Q", "headless_queue", "-c", "2", "--max-tasks-per-child=25", "-l", "INFO"]

@@ -1,0 +1,23 @@
+{
+  "category": "FINANCIAL_SCAM",
+  "locale": "id-ID",
+  "keywords": [
+    {"term": "undian berhadiah", "weight": 14},
+    {"term": "pinjol ilegal", "weight": 15},
+    {"term": "transfer salah alamat", "weight": 12},
+    {"term": "aktivasi rekening dibekukan", "weight": 18},
+    {"term": "modus kerja paruh waktu", "weight": 14},
+    {"term": "like and share", "weight": 10},
+    {"term": "surat undangan pernikahan apk", "weight": 20},
+    {"term": "resi paket kurir", "weight": 15},
+    {"term": "bantuan bansos", "weight": 12},
+    {"term": "klik link kompensasi", "weight": 16},
+    {"term": "tebus hadiah tunai", "weight": 15},
+    {"term": "investasi modal kecil untung besar", "weight": 18},
+    {"term": "pajak dibekukan", "weight": 14},
+    {"term": "pembaruan tarif bca", "weight": 18},
+    {"term": "kenaikan biaya transaksi", "weight": 15},
+    {"term": "konfirmasi blokir kartu", "weight": 16},
+    {"term": "ambil hadiah shopee", "weight": 14}
+  ]
+}
